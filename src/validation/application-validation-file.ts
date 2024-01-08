@@ -24,7 +24,8 @@ const createApplicationSchema: JSONSchemaType<Application[]> = {
                 },
             },
             created_at: { type: "string" },
-            updated_at: { type: "string" }
+            updated_at: { type: "string" },
+            traceid: { type: "string" }
         },
         required: ["name", "contact"],
         additionalProperties: false

@@ -4,6 +4,7 @@ export interface Application {
   contact: Contact[]
   created_at: string;
   updated_at: string;
+  traceid: string
 }
 
 interface Contact {
