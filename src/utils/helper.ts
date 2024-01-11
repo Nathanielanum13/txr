@@ -59,10 +59,10 @@ export const validateHeader = (headers: any, field: string, validation: string[]
     validation = validation?.length ? validation : ["exist"]
     let errors: any = []
     let isValid = true
-    const fieldValue = headers.get(field)
+    const fieldValue = headers?.[field]
 
     if (validation.includes("exist")) {
-        if (!headers.has(field)) {
+        if (!headers?.[field]) {
             errors = [...errors, {
                 message: "Missing header: " + field
             }]
@@ -86,7 +86,7 @@ export const validateHeader = (headers: any, field: string, validation: string[]
             code: 400,
             errors: errors,
             message: "Invalid request header",
-            traceid: headers?.get("traceid")
+            traceid: headers?.["traceid"]
         })
     }
 

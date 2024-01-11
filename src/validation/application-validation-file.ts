@@ -32,4 +32,4 @@ const createApplicationSchema: JSONSchemaType<Application[]> = {
     }
 }
 
-export const validateCreateApplicationPayload = ajv.compile(createApplicationSchema)
+export const validateApplicationPayload = ajv.compile(createApplicationSchema)

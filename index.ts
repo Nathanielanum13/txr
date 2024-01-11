@@ -1,5 +1,6 @@
-import { ApplicationHandler } from "./src/handlers"
 import dbConnect, { runMigrations } from "./src/db/db"
+import { Elysia } from "elysia"
+import router from "./src/router/router"
 
 // Start TXR application
 
@@ -11,25 +12,8 @@ const databaseConnection = await dbConnect()
 runMigrations(databaseConnection)
 
 
+new Elysia()
+    .use(router)
+    .listen(PORT)
 
-Bun.serve({
-    port: PORT,
-    fetch(request) {
-        const url = new URL(request.url)
-
-        if (url.pathname === "/") {
-            return new Response(JSON.stringify({
-                alive: true,
-                environment: process.env.TXR_ENVIRONMENT,
-                version: process.env.TXR_APP_VERSION,
-                application: "Task Runner Application",
-                email: "nathanielanum13@gmail.com"
-            }))
-        }
-
-        if (url.pathname === "/application") return ApplicationHandler(request)
-
-        return new Response(null)
-    }
-})
 console.log(`Server running on http://localhost:${PORT}`)

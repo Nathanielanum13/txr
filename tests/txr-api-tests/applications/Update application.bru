@@ -1,0 +1,31 @@
+meta {
+  name: Update application
+  type: http
+  seq: 3
+}
+
+put {
+  url: http://localhost:3010/application/8a53d8b8-7f6b-416e-a7bf-cfe97ae81517
+  body: json
+  auth: none
+}
+
+headers {
+  traceid: baa0e4df-df0f-4389-b41e-fdb9b97d0fcc
+}
+
+body:json {
+  [
+    {
+      "name": "Reporter",
+      "contact": [
+        {
+          "name": "Nathaniel",
+          "email": "nathanielanum13@gmail.com",
+          "phone": "233509131631",
+          "type": "PRIMARY"
+        }
+      ]
+    }
+  ]
+}
