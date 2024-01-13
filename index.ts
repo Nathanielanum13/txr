@@ -1,6 +1,7 @@
 import dbConnect, { runMigrations } from "./src/db/db"
 import { Elysia } from "elysia"
 import router from "./src/router/router"
+import { logger } from "./src/middleware/logger"
 
 // Start TXR application
 
@@ -13,6 +14,7 @@ runMigrations(databaseConnection)
 
 
 new Elysia()
+    .use(logger)
     .use(router)
     .listen(PORT)
 

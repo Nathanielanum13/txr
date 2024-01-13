@@ -1,0 +1,45 @@
+meta {
+  name: Create sequence
+  type: http
+  seq: 2
+}
+
+post {
+  url: http://localhost:3010/sequence
+  body: json
+  auth: none
+}
+
+headers {
+  traceid: 4455fc94-317f-4a78-80fb-9bb012c49799
+}
+
+body:json {
+  {
+    "app_id": "ad26575e-bd62-4a52-9cbe-5b2dc7bc4e44",
+    "frequency": "0 12 * * 1-5",
+    "description": "",
+    "jobs": [
+      {
+        "id": "~1",
+        "to": "~2",
+        "type": "_TXR_LOGGER",
+        "options": {
+          "path": "string",
+          "type": "STDOUT",
+          "value": "Hello Sir 1"
+        }
+      },
+      {
+        "id": "~2",
+        "to": "",
+        "type": "_TXR_LOGGER",
+        "options": {
+          "path": "string",
+          "type": "STDOUT",
+          "value": "Hello Sir 2"
+        }
+      }
+    ]
+  }
+}

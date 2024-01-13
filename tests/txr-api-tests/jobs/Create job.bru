@@ -1,0 +1,31 @@
+meta {
+  name: Create job
+  type: http
+  seq: 2
+}
+
+post {
+  url: http://localhost:3010/job
+  body: json
+  auth: none
+}
+
+headers {
+  traceid: 4455fc94-317f-4a78-80fb-9bb012c49799
+}
+
+body:json {
+  [
+    {
+      "id": "~1",
+      "seq_id": "ad26575e-bd62-4a52-9cbe-5b2dc7bc4e44",
+      "to": "",
+      "type": "_TXR_LOGGER",
+      "options": {
+        "path": "string",
+        "type": "STDOUT",
+        "value": "Hello Sir"
+      }
+    }
+  ]
+}

@@ -1,26 +1,26 @@
 meta {
-  name: Create application
+  name: Update sequence
   type: http
-  seq: 2
+  seq: 3
 }
 
-post {
-  url: http://localhost:3010/application
+put {
+  url: http://localhost:3010/sequence/:id
   body: json
   auth: none
 }
 
 headers {
-  traceid: 4455fc94-317f-4a78-80fb-9bb012c49799
+  traceid: baa0e4df-df0f-4389-b41e-fdb9b97d0fcc
 }
 
 body:json {
   [
     {
-      "name": "Transaction Processor",
+      "name": "Reporter",
       "contact": [
         {
-          "name": "Nathaniel Anum Adjah",
+          "name": "Nathaniel",
           "email": "nathanielanum13@gmail.com",
           "phone": "233509131631",
           "type": "PRIMARY"

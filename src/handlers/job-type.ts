@@ -1,17 +1,20 @@
 import { Context } from "elysia"
 import dbConnect from "../db/db"
 import { modelErrorResponse, modelSuccessResponse } from "../utils/helper"
-import { validateApplicationPayload } from "../validation/application-validation-file"
+import { validateJobTypePayload } from "../validation/job-type-validation-file"
 import { v4 as uuidv4 } from "uuid"
+import { JobTypeType } from "../types/JobType"
 
-export const ApplicationHandler = async (ctx: Context): Promise<Response> => {
+const jobTypeType: JobTypeType = "TXR_JOB_TYPE"
+
+export const JobTypeHandler = async (ctx: Context): Promise<Response> => {
     const traceid = ctx.headers.traceid
     let response: Response = new Response()
 
     const dbConnection = await dbConnect()
-    await dbConnection("application").select("id", "name", "contact", "created_at", "updated_at").where("status", "!=", false).then((insertResponse) => {
+    await dbConnection("job_type").select("id", "name", "type", "options", "created_at", "updated_at").where("status", "!=", false).then((insertResponse) => {
         response = modelSuccessResponse({
-            message: "application fetched successfully",
+            message: "job types fetched successfully",
             code: 200,
             data: insertResponse,
             traceid: traceid
@@ -30,27 +33,27 @@ export const ApplicationHandler = async (ctx: Context): Promise<Response> => {
     return response
 }
 
-export const CreateApplicationHandler = async (ctx: Context): Promise<Response> => {
+export const CreateJobTypeHandler = async (ctx: Context): Promise<Response> => {
     const payload = ctx.body
     const traceid = ctx.headers.traceid
     let response: Response = new Response()
 
     // Validate payload
-    if (!validateApplicationPayload(payload)) {
+    if (!validateJobTypePayload(payload)) {
         return modelErrorResponse({
             code: 400,
-            errors: validateApplicationPayload.errors,
+            errors: validateJobTypePayload.errors,
             message: "Invalid request object",
             traceid: traceid
         })
     }
 
-    const dataToInsert = [...payload.map(data => ({ ...data, id: uuidv4(), contact: JSON.stringify(data.contact), traceid: traceid }))]
+    const dataToInsert = [...payload.map(data => ({ ...data, id: uuidv4(), options: JSON.stringify(data.options), traceid: traceid, type: jobTypeType }))]
 
     const dbConnection = await dbConnect()
-    await dbConnection("application").insert(dataToInsert, ["id", "name"]).then((insertResponse) => {
+    await dbConnection("job_type").insert(dataToInsert, ["id", "name"]).then((insertResponse) => {
         response = modelSuccessResponse({
-            message: "application created successfully",
+            message: "job type created successfully",
             code: 200,
             data: insertResponse,
             traceid: traceid
@@ -69,7 +72,7 @@ export const CreateApplicationHandler = async (ctx: Context): Promise<Response> 
     return response
 }
 
-export const UpdateApplicationHandler = async (ctx: Context | any): Promise<Response> => {
+export const UpdateJobTypeHandler = async (ctx: Context | any): Promise<Response> => {
     const payload = ctx.body
     const traceid = ctx.headers.traceid
     const id = ctx.params.id
@@ -77,21 +80,21 @@ export const UpdateApplicationHandler = async (ctx: Context | any): Promise<Resp
     let response: Response = new Response()
 
     // Validate payload
-    if (!validateApplicationPayload(payload)) {
+    if (!validateJobTypePayload(payload)) {
         return modelErrorResponse({
             code: 400,
-            errors: validateApplicationPayload.errors,
+            errors: validateJobTypePayload.errors,
             message: "Invalid request object",
             traceid: traceid
         })
     }
 
-    const dataToInsert = [...payload.map(data => ({ ...data, contact: JSON.stringify(data.contact) }))]
+    const dataToInsert = [...payload.map(data => ({ ...data, options: JSON.stringify(data.options), type: jobTypeType }))]
 
     const dbConnection = await dbConnect()
-    await dbConnection("application").where({ id: id }).update(dataToInsert[0], ["id", "name"]).then((insertResponse) => {
+    await dbConnection("job_type").where({ id: id }).update(dataToInsert[0], ["id", "name"]).then((insertResponse) => {
         response = modelSuccessResponse({
-            message: "application updated successfully",
+            message: "job type updated successfully",
             code: 200,
             data: insertResponse,
             traceid: traceid
@@ -110,16 +113,16 @@ export const UpdateApplicationHandler = async (ctx: Context | any): Promise<Resp
     return response
 }
 
-export const DeleteApplicationHandler = async (ctx: Context | any): Promise<Response> => {
+export const DeleteJobTypeHandler = async (ctx: Context | any): Promise<Response> => {
     const traceid = ctx.headers.traceid
     const id = ctx.params.id
 
     let response: Response = new Response()
 
     const dbConnection = await dbConnect()
-    await dbConnection("application").where({ id: id }).update({ status: false }, ["id", "name"]).then((insertResponse) => {
+    await dbConnection("job_type").where({ id: id }).update({ status: false }, ["id", "name"]).then((insertResponse) => {
         response = modelSuccessResponse({
-            message: "application deleted successfully",
+            message: "job type deleted successfully",
             code: 200,
             data: insertResponse,
             traceid: traceid
