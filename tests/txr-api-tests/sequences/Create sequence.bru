@@ -17,27 +17,17 @@ headers {
 body:json {
   {
     "app_id": "ad26575e-bd62-4a52-9cbe-5b2dc7bc4e44",
-    "frequency": "0 12 * * 1-5",
-    "description": "",
+    "frequency": "*/10 * * * * *",
+    "description": "logs data to the standard output",
     "jobs": [
       {
-        "id": "~1",
-        "to": "~2",
-        "type": "_TXR_LOGGER",
-        "options": {
-          "path": "string",
-          "type": "STDOUT",
-          "value": "Hello Sir 1"
-        }
-      },
-      {
-        "id": "~2",
+        "id": "",
         "to": "",
-        "type": "_TXR_LOGGER",
+        "type": "09b6279a-5be8-4418-a366-c7d937bce580",
         "options": {
-          "path": "string",
-          "type": "STDOUT",
-          "value": "Hello Sir 2"
+          "path": "/home/nathaniel/Desktop/foo/bar/log.txt",
+          "type": "FILE",
+          "value": "My name is Nathaniel"
         }
       }
     ]

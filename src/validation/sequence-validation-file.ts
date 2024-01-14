@@ -7,6 +7,7 @@ const createSequenceSchema: JSONSchemaType<Sequence> = {
     properties: {
         id: { type: "string" },
         app_id: { type: "string" },
+        app_name: { type: "string" },
         frequency: { type: "string" },
         description: { type: "string" },
         jobs: { 
