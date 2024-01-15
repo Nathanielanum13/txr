@@ -1,7 +1,7 @@
 const fs = require('fs').promises;
 const path = require('path');
 
-export default async (expectedOptions: any, job: any) => {
+export default async (expectedOptions: any, job: any, prevJobData: any, successCallback: (data: any) => void) => {
     const providedOptions = job?.options
     let types: string[] = expectedOptions?.type?.split("|")
     types = types.map((type: string) => {
@@ -13,8 +13,9 @@ export default async (expectedOptions: any, job: any) => {
     if (!types.includes(providedOptions?.type)) {
         console.error(`Failed to execute job ${job?.id}. Reason: Invalid option type provided`)
     } else {
+        const logValue = providedOptions?.value === "$PREV_OUTPUT" ? prevJobData : providedOptions?.value
         if (providedOptions?.type === "STDOUT") {
-            console.log(`Job ${job?.id} execution successful: ${providedOptions?.value}`)
+            console.log(`Job ${job?.id} execution successful: ${logValue}`)
         }
 
         if (providedOptions?.type === "FILE") {
@@ -25,13 +26,15 @@ export default async (expectedOptions: any, job: any) => {
 
             if (!fileExists) {
                 // If the file doesn't exist, create it with the specified content
-                await createFile(filePath, `${new Date().toISOString()} Job ${job?.id} execution successful: ${providedOptions?.value}`);
+                await createFile(filePath, `${new Date().toISOString()} Job ${job?.id} execution successful: ${logValue}`);
             } else {
                 // If the file exists, append the content to it
-                await appendToFile(filePath, `${new Date().toISOString()} Job ${job?.id} execution successful: ${providedOptions?.value}`);
+                await appendToFile(filePath, `${new Date().toISOString()} Job ${job?.id} execution successful: ${logValue}`);
             }
 
             console.log(`Job ${job?.id} execution successful: logs written to ${filePath}`);
+
+            
         }
     }
 }
