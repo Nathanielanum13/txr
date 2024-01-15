@@ -1,7 +1,7 @@
 import { Context } from "elysia"
 import { CronJob } from 'cron';
 import dbConnect from "../db/db"
-import { modelErrorResponse, modelSuccessResponse } from "../utils/helper"
+import { modelErrorResponse, modelSuccessResponse, orderJobs } from "../utils/helper"
 import { validateSequencePayload } from "../validation/sequence-validation-file"
 import { v4 as uuidv4 } from "uuid"
 
@@ -168,24 +168,25 @@ export const ActivateSequenceHandler = async (ctx: Context | any): Promise<Respo
 
     await dbConnection("sequence").where({ id: id }).update({ status: true }, ["id", "frequency"]).then(async (dbResponse) => {
         // 1. Fetch all jobs in this sequence
+        let tempData: any;
         const runJob = async () => {
             let computedJobs: any = []
             try {
                 const db2Response = await dbConnection("job").select("*").where("seq_id", "=", id);
 
-                console.log(db2Response, 'Hi')
-
                 if (db2Response?.length) {
                     computedJobs = await Promise.all(
                         db2Response.map(async (job) => {
                             const db3Response = await dbConnection("job_type").select("*").where("id", "=", job?.type);
-                            let runner: any = {}
+                            let runner: any = { ...job }
                             const plugin = db3Response?.[0]?.name;
         
                             const pluginModule = await import(`../plugins/${plugin}.ts`);
                             const pluginFunction = pluginModule?.default;
         
-                            runner.job = () => pluginFunction?.(db3Response?.[0]?.options, job);
+                            runner.job = (prevJobData: any = null) => pluginFunction?.(db3Response?.[0]?.options, job, prevJobData, (currentJobData: any) => {
+                                tempData = currentJobData
+                            });
 
                             return runner
                         })
@@ -211,18 +212,20 @@ export const ActivateSequenceHandler = async (ctx: Context | any): Promise<Respo
         };
 
         const result = await runJob()
+
+        // Order Jobs
+        const orderedResults = orderJobs(result)
         
         const job = new CronJob(
             dbResponse?.[0]?.frequency,
             function() {
-                result.forEach((runner: any) => {
-                    runner.job()
+                orderedResults.forEach(async (runner: any) => {
+                    await runner.job(tempData)
                 })
             }
         );
         
         job.start();
-        
 
         response = modelSuccessResponse({
             message: "sequence activated successfully",
