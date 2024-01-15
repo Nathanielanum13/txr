@@ -3,3 +3,5 @@ TODOS
 - Add new field restart_always to sequence table. On server start get all sequence with restart_always true and execute their jobs
 - Provide internal logs for when jobs complete
 - Start UI for creating screens
+- Update _TXR_DATABASE plugin to accept connection string
+- Update _TXR_LOGGER to log raw
