@@ -1,0 +1,5 @@
+TODOS
+- APIS for updating jobs
+- Add new field restart_always to sequence table. On server start get all sequence with restart_always true and execute their jobs
+- Provide internal logs for when jobs complete
+- Start UI for creating screens
