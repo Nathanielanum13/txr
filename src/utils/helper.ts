@@ -96,3 +96,61 @@ export const isValidUUIDv4 = (uuid: string) => {
     const uuidv4Pattern = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/;
     return uuidv4Pattern.test(uuid);
 }
+
+export const orderJobs = (arr: any[]) => {
+    const graph: any = {};
+    const inDegree: any = {};
+  
+    // Build the graph and in-degree map
+    arr.forEach((item) => {
+      const id = item.id;
+      const to = item.to;
+  
+      if (!graph[id]) {
+        graph[id] = [];
+        inDegree[id] = 0;
+      }
+  
+      if (to && !graph[to]) {
+        graph[to] = [];
+        inDegree[to] = 0;
+      }
+  
+      if (to) {
+        graph[id].push(to);
+        inDegree[to]++;
+      }
+    });
+  
+    // Perform topological sort
+    const result = [];
+    const queue: any = [];
+  
+    // Enqueue nodes with in-degree 0
+    Object.keys(inDegree).forEach((node) => {
+      if (inDegree[node] === 0) {
+        queue.push(node);
+      }
+    });
+  
+    while (queue.length > 0) {
+      const currentNode = queue.shift();
+      result.push(arr.find((item) => item.id === currentNode));
+  
+      graph[currentNode].forEach((neighbor: any) => {
+        inDegree[neighbor]--;
+        if (inDegree[neighbor] === 0) {
+          queue.push(neighbor);
+        }
+      });
+    }
+  
+    // Check for cycles
+    if (result.length !== arr.length) {
+      console.error('Error: The given array contains a cycle.');
+      return arr;
+    }
+  
+    return result;
+}
+  

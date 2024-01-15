@@ -17,10 +17,13 @@ headers {
 body:json {
   [
     {
-      "name": "_TXR_LOGGER",
+      "name": "_TXR_DATABASE",
       "options": {
-        "type": "'STDOUT' | 'FILE' | 'DB'",
-        "path": "string"
+        "database": "string",
+        "user": "string",
+        "password": "string",
+        "client": "'postgresql' | 'mysql'",
+        "query": "string"
       }
     }
   ]
