@@ -21,13 +21,29 @@ body:json {
     "description": "log to file",
     "jobs": [
       {
+        "id": "~1",
+        "to": "~2",
+        "type": "429e92ee-13d9-4311-945b-f4f367e33bd5",
+        "options": {
+          "ssl": false,
+          "host": "139.162.242.134",
+          "port": 5432,
+          "user": "cash_management",
+          "query": "SELECT * FROM customer_sites",
+          "client": "postgresql",
+          "database": "cash_management",
+          "password": "cash_management",
+          "connection_string": ""
+        }
+      },
+      {
         "id": "~2",
         "to": "",
-        "type": "09b6279a-5be8-4418-a366-c7d937bce580",
+        "type": "3f44abe2-4625-4b7e-aecc-122133649804",
         "options": {
-          "path": "/home/nathaniel/Desktop/foo/bar/transaction_processor_log.txt",
+          "path": "/home/nathaniel/Desktop/cash-management/data/logs.txt",
           "type": "FILE",
-          "value": "Remember to pray hard"
+          "value": "$PREV_OUTPUT"
         }
       }
     ]

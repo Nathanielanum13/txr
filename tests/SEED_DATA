@@ -1,0 +1,28 @@
+[
+  {
+    "name": "_TXR_DATABASE",
+    "options": {
+      "user": "string",
+      "query": "string",
+      "client": "'postgresql' | 'mysql'",
+      "database": "string",
+      "password": "string",
+      "connection_string": "string",
+      "host": "string",
+      "port": "number",
+      "ssl": "boolean"
+    }
+  }
+]
+
+[
+  {
+    "name": "_TXR_LOGGER",
+    "options": {
+      "path": "string",
+      "type": "'STDOUT' | 'FILE'",
+      "value": "string",
+      "raw": "boolean"
+    }
+  }
+]
