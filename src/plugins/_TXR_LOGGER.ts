@@ -13,9 +13,10 @@ export default async (expectedOptions: any, job: any, prevJobData: any, successC
     if (!types.includes(providedOptions?.type)) {
         console.error(`Failed to execute job ${job?.id}. Reason: Invalid option type provided`)
     } else {
+        const raw = providedOptions?.raw || false
         const logValue = providedOptions?.value === "$PREV_OUTPUT" ? prevJobData : providedOptions?.value
         if (providedOptions?.type === "STDOUT") {
-            console.log(`Job ${job?.id} execution successful: ${logValue}`)
+            console.log(`${raw ? '' : `Job ${job?.id} execution successful: `}${logValue}`)
         }
 
         if (providedOptions?.type === "FILE") {
@@ -26,14 +27,13 @@ export default async (expectedOptions: any, job: any, prevJobData: any, successC
 
             if (!fileExists) {
                 // If the file doesn't exist, create it with the specified content
-                await createFile(filePath, `${new Date().toISOString()} Job ${job?.id} execution successful: ${logValue}`);
+                await createFile(filePath, `${raw ? '' : `${new Date().toISOString()} Job ${job?.id} execution successful: `}${logValue}`);
             } else {
                 // If the file exists, append the content to it
-                await appendToFile(filePath, `${new Date().toISOString()} Job ${job?.id} execution successful: ${logValue}`);
+                await appendToFile(filePath, `${raw ? '' : `${new Date().toISOString()} Job ${job?.id} execution successful: `}${logValue}`);
             }
 
             console.log(`Job ${job?.id} execution successful: logs written to ${filePath}`);
-
             
         }
     }

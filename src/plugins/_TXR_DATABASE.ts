@@ -17,9 +17,13 @@ export default async (expectedOptions: any, job: any, prevJobData: any, successC
         const knexConfig = {
             client: providedOptions?.client,
             connection: {
+              connectionString: providedOptions?.connection_string,
+              host: providedOptions?.host,
+              port: providedOptions?.port,
               database: providedOptions?.database,
               user: providedOptions?.user,
               password: providedOptions?.password,
+              ssl: providedOptions?.password ? { rejectUnauthorized: false } : false,
             },
             pool: {
               min: 2,
