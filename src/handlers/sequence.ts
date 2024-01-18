@@ -4,6 +4,9 @@ import dbConnect from "../db/db"
 import { modelErrorResponse, modelSuccessResponse, orderJobs } from "../utils/helper"
 import { validateSequencePayload } from "../validation/sequence-validation-file"
 import { v4 as uuidv4 } from "uuid"
+import { Knex } from "knex";
+
+const SEQUENCE_PROCCESSES: any = {}
 
 export const SequenceHandler = async (ctx: Context): Promise<Response> => {
     const traceid = ctx.headers.traceid
@@ -167,72 +170,7 @@ export const ActivateSequenceHandler = async (ctx: Context | any): Promise<Respo
     let response: Response = new Response()
 
     await dbConnection("sequence").where({ id: id }).update({ status: true }, ["id", "frequency"]).then(async (dbResponse) => {
-        // 1. Fetch all jobs in this sequence
-        let tempData: any;
-        const runJob = async () => {
-            let computedJobs: any = []
-            try {
-                const db2Response = await dbConnection("job").select("*").where("seq_id", "=", id);
-
-                if (db2Response?.length) {
-                    computedJobs = await Promise.all(
-                        db2Response.map(async (job) => {
-                            const db3Response = await dbConnection("job_type").select("*").where("id", "=", job?.type);
-                            let runner: any = { ...job }
-                            const plugin = db3Response?.[0]?.name;
-        
-                            const pluginModule = await import(`../plugins/${plugin}.ts`);
-                            const pluginFunction = pluginModule?.default;
-        
-                            runner.job = (prevJobData: any = null) => pluginFunction?.(db3Response?.[0]?.options, job, prevJobData, (currentJobData: any) => {
-                                tempData = currentJobData
-                            });
-
-                            return runner
-                        })
-                    );
-                } else {
-                    response = modelSuccessResponse({
-                        message: "sequence activated successfully",
-                        code: 200,
-                        data: dbResponse,
-                        traceid: traceid
-                    })
-                }
-            } catch (err) {
-                response = modelErrorResponse({
-                    message: "Error while running jobs",
-                    code: 500,
-                    errors: [err],
-                    traceid: traceid,
-                });
-            }
-
-            return computedJobs
-        };
-
-        const result = await runJob()
-
-        // Order Jobs
-        const orderedResults = orderJobs(result)
-        
-        const job = new CronJob(
-            dbResponse?.[0]?.frequency,
-            function() {
-                orderedResults.forEach(async (runner: any) => {
-                    await runner.job(tempData)
-                })
-            }
-        );
-        
-        job.start();
-
-        response = modelSuccessResponse({
-            message: "sequence activated successfully",
-            code: 200,
-            data: dbResponse,
-            traceid: traceid
-        })
+        response = await runSequence(id, dbConnection, dbResponse, traceid)
     }).catch((err) => {
         response = modelErrorResponse({
             message: "internal server error",
@@ -244,8 +182,143 @@ export const ActivateSequenceHandler = async (ctx: Context | any): Promise<Respo
         dbConnection.destroy()
     })
 
+    return response
+}
+
+export const DeactivateSequenceHandler = async (ctx: Context | any): Promise<Response> => {
+    const traceid = ctx.headers.traceid
+    const id = ctx.params.id
+    const dbConnection = await dbConnect()
+    let response: Response = new Response()
+
+    await dbConnection("sequence").where({ id: id }).update({ status: false }, ["id", "frequency"]).then(async (dbResponse) => {
+        response = await runSequence(id, dbConnection, dbResponse, traceid)
+    }).catch((err) => {
+        response = modelErrorResponse({
+            message: "internal server error",
+            code: 500,
+            errors: [err],
+            traceid: traceid
+        })
+    }).finally(() => {
+        dbConnection.destroy()
+    })
 
     return response
+}
+
+
+export const initSequenceHandler = async () => {
+    const dbConnection = await dbConnect()
+    // Clear process table
+    await dbConnection("process").del()
+    // Auto start sequences
+    await dbConnection("sequence").select("id", "frequency").then(async (dbResponse) => {
+        await Promise.all(
+            dbResponse.map(async (sequence) => {
+                return await runSequence(sequence?.id, dbConnection, dbResponse, uuidv4())
+            })
+        )
+    }).finally(() => {
+        dbConnection.destroy()
+    })
+}
+
+
+const runSequence = async (id: string, dbConnection: Knex, sequenceDetails: any[], traceid: string) => {
+    let response: Response = new Response()
+    let tempData: any;
+
+    // 1. Check sequence status
+    const sequenceStatus = await dbConnection("sequence").select("status").where("id", "=", id)
+   
+    // If sequence status is true 
+    if (sequenceStatus?.[0]?.status) {
+        let result = []
+        result = await runJobs(id, dbConnection, (previousData: any) => {
+            tempData = previousData
+        })
+
+        // Order Jobs
+        const orderedResults = orderJobs(result)
+
+        SEQUENCE_PROCCESSES[id] = new CronJob(
+            sequenceDetails?.[0]?.frequency,
+            function() {
+                orderedResults.forEach(async (runner: any) => {
+                    await runner.job(tempData)
+                })
+            }
+        );
+
+        try {
+            await dbConnection("process").insert({ pid: id }).then(() => {
+                const job = SEQUENCE_PROCCESSES[id]
+                job.start();
+            })
+        } catch (error) {
+            console.log(error)
+        }
+
+        response = modelSuccessResponse({
+            message: "sequence activated successfully",
+            code: 200,
+            data: sequenceDetails,
+            traceid: traceid
+        })
+    } else {
+        const runningJob = SEQUENCE_PROCCESSES[id]
+
+        try {
+            await dbConnection("process").where("pid", "=", id).del()
+        } catch (error) {}
+
+        if (runningJob) {
+            runningJob?.stop()
+        }
+
+        response = modelSuccessResponse({
+            message: "sequence deactivated successfully",
+            code: 200,
+            data: [{ "id": id }],
+            traceid: traceid
+        })
+
+    }
+
+    return response
+}
+
+const runJobs = async (id: string, dbConnection: Knex, callback: (data: any) => void) => {
+    let computedJobs: any = []
+    try {
+        const db2Response = await dbConnection("job").select("*").where("seq_id", "=", id);
+
+        if (db2Response?.length) {
+            computedJobs = await Promise.all(
+                db2Response.map(async (job) => {
+                    const db3Response = await dbConnection("job_type").select("*").where("id", "=", job?.type);
+                    let runner: any = { ...job }
+                    const plugin = db3Response?.[0]?.name;
+
+                    const pluginModule = await import(`../plugins/${plugin}.ts`);
+                    const pluginFunction = pluginModule?.default;
+
+                    runner.job = (prevJobData: any = null) => pluginFunction?.(db3Response?.[0]?.options, job, prevJobData, (currentJobData: any) => {
+                        callback(currentJobData)
+                    });
+
+                    return runner
+                })
+            );
+        } else {
+            // No jobs available to run
+        }
+    } catch (err) {
+        // Error while running job
+    }
+
+    return computedJobs
 }
 
 // export const UpdateApplicationHandler = async (ctx: Context | any): Promise<Response> => {
