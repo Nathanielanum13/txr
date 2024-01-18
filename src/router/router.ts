@@ -3,7 +3,7 @@ import { HealthCheckHandler } from "../handlers/health-check";
 import { ApplicationHandler, CreateApplicationHandler, DeleteApplicationHandler, UpdateApplicationHandler } from "../handlers/application";
 import { ValidateTraceidMiddleware } from "../middleware/validate-header";
 import { JobTypeHandler, CreateJobTypeHandler, DeleteJobTypeHandler, UpdateJobTypeHandler } from "../handlers/job-type";
-import { ActivateSequenceHandler, CreateSequenceHandler, SequenceHandler } from "../handlers/sequence";
+import { ActivateSequenceHandler, CreateSequenceHandler, DeactivateSequenceHandler, SequenceHandler } from "../handlers/sequence";
 
 const router = new Elysia()
   .get("/", HealthCheckHandler)
@@ -18,6 +18,7 @@ const router = new Elysia()
   .delete("/job-type/:id", (context) => DeleteJobTypeHandler(context as any))
   .get("/sequence", (context) => SequenceHandler(context))
   .get("/sequence/start/:id", (context) => ActivateSequenceHandler(context as any))
+  .get("/sequence/stop/:id", (context) => DeactivateSequenceHandler(context as any))
   .post("/sequence", (context) => CreateSequenceHandler(context));
 
 export default router;
